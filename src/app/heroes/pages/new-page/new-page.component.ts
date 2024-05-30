@@ -1,8 +1,10 @@
 import { Component, OnInit, Pipe } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Hero, Publisher } from '../../interfaces/hero.interface';
-import { HeroesService } from '../../services/heroes.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
+import { HeroesService } from '../../services/heroes.service';
 import { switchMap, pipe, tap } from 'rxjs';
 
 @Component({
@@ -11,8 +13,6 @@ import { switchMap, pipe, tap } from 'rxjs';
   styles: ``
 })
 export class NewPageComponent implements OnInit{
-
-  public hero?: Hero;
 
   // Estable el formulario como un formulario reactivo
   public heroForm = new FormGroup({
@@ -34,7 +34,8 @@ export class NewPageComponent implements OnInit{
   constructor(
     private heroeService: HeroesService,
     private activatedRoute: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private snackbar: MatSnackBar,
   ){}
 
   ngOnInit(): void {
@@ -49,8 +50,6 @@ export class NewPageComponent implements OnInit{
         if ( !heroe ) {
           return this.router.navigateByUrl('/');
         }
-
-        this.hero = heroe;
         // Establece los valores que vienen desde el backend del heroe al formulario
         this.heroForm.reset( heroe );
         return;
@@ -71,7 +70,7 @@ export class NewPageComponent implements OnInit{
     if( this.currenHero.id ){
       this.heroeService.updateHero( this.currenHero )
         .subscribe( hero =>{
-
+          this.showSanckbar(`¡${ hero.superhero } actualizado con éxito!`);
         });
 
       return;    
@@ -79,10 +78,18 @@ export class NewPageComponent implements OnInit{
 
     // Si no tiene id, es porque se quiere crear un heroe nuevo
     this.heroeService.addHero( this.currenHero )
-      .subscribe( resp =>{
-
+      .subscribe( hero =>{
+        this.router.navigate(['/heroes/edit', hero.id])
+        this.showSanckbar(`¡${ hero.superhero } creado con éxito!`);        
       });
 
+  }
+
+  // Snackbar que se muestra durante 2,5 segundos
+  showSanckbar( message: string ): void {
+    this.snackbar.open( message, 'done', {
+      duration: 2500
+    });
   }
     
   

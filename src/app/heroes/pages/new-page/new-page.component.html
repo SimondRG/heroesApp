@@ -79,6 +79,7 @@
         <div class="flex justify-content-between mt-2">
             <button 
                 *ngIf="currenHero.id"
+                (click)="onDeleteHero()"
                 mat-flat-button
                 color="warn">
                 Borrar

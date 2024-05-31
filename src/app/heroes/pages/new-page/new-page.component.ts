@@ -3,9 +3,12 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { Hero, Publisher } from '../../interfaces/hero.interface';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
 
 import { HeroesService } from '../../services/heroes.service';
-import { switchMap, pipe, tap } from 'rxjs';
+import { switchMap, pipe, tap, filter } from 'rxjs';
+
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-new-page',
@@ -36,6 +39,7 @@ export class NewPageComponent implements OnInit{
     private activatedRoute: ActivatedRoute,
     private router: Router,
     private snackbar: MatSnackBar,
+    public dialog: MatDialog,
   ){}
 
   ngOnInit(): void {
@@ -83,6 +87,41 @@ export class NewPageComponent implements OnInit{
         this.showSanckbar(`¡${ hero.superhero } creado con éxito!`);        
       });
 
+  }
+
+  onDeleteHero():void{
+    const dialogRef = this.dialog
+      .open( ConfirmDialogComponent, {
+        data: this.heroForm.value,
+      });
+      
+      // Código mejorado con operadores de Rxjs
+      dialogRef.afterClosed()
+        .pipe(
+          filter( (result: boolean) => result ), // El filter solo deja que el switchMap se ejecute si result es verdadero, es como una barrera de validación
+          switchMap( () =>  this.heroeService.deleteHeroById( this.currenHero.id ) ),
+          filter( (seBorro: boolean) => seBorro ), // El filter solo deja al subscribe si seBorro es verdadero, es como una barrera de validación
+        )
+        .subscribe( result => {
+          this.router.navigate(['/heroes']);
+          console.log({'El heroe se borro con éxito': result});
+          this.showSanckbar('El héroe se borro de forma éxitosa');
+        });
+
+    // Código anterior
+    /*dialogRef.afterClosed()
+      .subscribe(result => {
+        if ( !result ) return;
+
+        this.heroeService.deleteHeroById( this.currenHero.id )
+          .subscribe( resp =>{
+            if ( resp ) {
+              console.log('Heroe eliminado', resp );
+              this.router.navigate(['/heroes']);
+            }
+          });
+        console.log({ result });
+      });*/
   }
 
   // Snackbar que se muestra durante 2,5 segundos

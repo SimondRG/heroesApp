@@ -5,11 +5,14 @@ import { Error404PageComponent } from './shared/pages/error404-page/error404-pag
 
 //Importamos las dos funciones que se crearon en auth.guards.ts
 import { canMatchGuard, canActivateGuard } from './auth/guards/auth.guard';
+import { publicGuard } from './auth/guards/public.guard';
 
 const routes: Routes = [
   {
     path: 'auth',
     loadChildren: () => import('./auth/auth.module').then( m => m.AuthModule ),
+    canActivate: [ publicGuard ]
+
   },
   {
     path: 'heroes',
